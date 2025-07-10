@@ -1,0 +1,36 @@
+---
+- name: Update and upgrade apt packages
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages to latest version
+      apt:
+        upgrade: dist
+
+    - name: Install vim
+      apt:
+        name: vim
+        state: present
+
+    - name: Install git
+      apt:
+        name: git
+        state: present
+
+    - name: Install curl
+      apt:
+        name: curl
+        state: present
+
+    - name: Install build-essential, dkms, and linux-headers
+      apt:
+        name:
+          - build-essential
+          - dkms
+          - 'linux-headers-{{ ansible_kernel }}'
+        state: present
