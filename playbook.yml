@@ -1,31 +1,35 @@
 ---
 - name: Update and upgrade apt packages
   hosts: localhost
-  become: yes
 
   tasks:
     - name: Update apt cache
       apt:
         update_cache: yes
+      become: yes
 
     - name: Upgrade all packages to latest version
       apt:
         upgrade: dist
+      become: yes
 
     - name: Install vim
       apt:
         name: vim
         state: present
+      become: yes
 
     - name: Install git
       apt:
         name: git
         state: present
+      become: yes
 
     - name: Install curl
       apt:
         name: curl
         state: present
+      become: yes
 
     - name: Install build-essential, dkms, and linux-headers
       apt:
@@ -34,3 +38,182 @@
           - dkms
           - 'linux-headers-{{ ansible_kernel }}'
         state: present
+      become: yes
+
+    - name: Install zsh
+      apt:
+        name: zsh
+        state: present
+      become: yes
+
+    - name: Change default shell to zsh for current user
+      user:
+        name: '{{ ansible_user_id }}'
+        shell: /bin/zsh
+      become: yes
+
+    - name: Install oh-my-zsh
+      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      args:
+        creates: /home/{{ ansible_user_id }}/.oh-my-zsh
+      become: no
+
+    - name: Install powerlevel10k theme
+      shell: git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+      args:
+        creates: /home/{{ ansible_user_id }}/.oh-my-zsh/custom/themes/powerlevel10k
+      become: no
+
+    - name: Set powerlevel10k as default theme in .zshrc
+      lineinfile:
+        path: /home/{{ ansible_user_id }}/.zshrc
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+        backup: yes
+      become: no
+
+    - name: Install nvm
+      shell: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+      args:
+        creates: /home/{{ ansible_user_id }}/.nvm
+      become: no
+
+    - name: Install latest LTS Node.js via nvm
+      shell: |
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        nvm install --lts
+        nvm use --lts
+      args:
+        executable: /bin/bash
+      become: no
+
+    - name: Update snap packages
+      shell: snap refresh
+      become: yes
+
+    - name: Install teams-for-linux via snap
+      snap:
+        name: teams-for-linux
+        state: present
+      become: yes
+
+    - name: Install spotify via snap
+      snap:
+        name: spotify
+        state: present
+      become: yes
+
+    - name: Install onlyoffice-desktopeditors via snap
+      snap:
+        name: onlyoffice-desktopeditors
+        state: present
+      become: yes
+
+    - name: Install emote via snap
+      snap:
+        name: emote
+        state: present
+      become: yes
+
+    - name: Install Angular CLI globally via npm
+      npm:
+        name: '@angular/cli'
+        global: yes
+        state: latest
+      become: no
+
+    - name: Add Google Chrome GPG key
+      apt_key:
+        url: https://dl.google.com/linux/linux_signing_key.pub
+        state: present
+      become: yes
+
+    - name: Add Google Chrome repository
+      apt_repository:
+        repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+        state: present
+      become: yes
+
+    - name: Install Google Chrome
+      apt:
+        name: google-chrome-stable
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install GNOME Shell Extension Manager
+      apt:
+        name: gnome-shell-extension-manager
+        state: present
+      become: yes
+
+    - name: Add Tabby repository
+      shell: curl -s https://packagecloud.io/install/repositories/eugeny/tabby/script.deb.sh | sudo bash
+      become: yes
+
+    - name: Install Tabby terminal
+      apt:
+        name: tabby-terminal
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Add Microsoft GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+      become: yes
+
+    - name: Add Visual Studio Code repository
+      apt_repository:
+        repo: deb [arch=amd64,arm64,armhf] https://packages.microsoft.com/repos/code stable main
+        state: present
+      become: yes
+
+    - name: Install Visual Studio Code
+      apt:
+        name: code
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install Docker dependencies
+      apt:
+        name:
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+      become: yes
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      become: yes
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+      become: yes
+
+    - name: Install Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Add user to docker group
+      user:
+        name: '{{ ansible_user_id }}'
+        groups: docker
+        append: yes
+      become: yes
