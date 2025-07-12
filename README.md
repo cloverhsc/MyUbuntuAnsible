@@ -13,3 +13,5 @@
 ```bash
 ansible-playbook --ask-become-pass playbook.yml
 ```
+
+After running the playbook, you may need to reboot your system to apply all changes.
