@@ -229,3 +229,16 @@
         groups: docker
         append: yes
       become: yes
+
+    - name: Add Microsoft Edge repository
+      apt_repository:
+        repo: deb [arch=amd64,arm64,armhf] https://packages.microsoft.com/repos/edge stable main
+        state: present
+      become: yes
+
+    - name: Install Microsoft Edge
+      apt:
+        name: microsoft-edge-stable
+        state: present
+        update_cache: yes
+      become: yes
