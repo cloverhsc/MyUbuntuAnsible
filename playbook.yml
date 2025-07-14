@@ -72,6 +72,30 @@
         backup: yes
       become: no
 
+    - name: Create fonts directory
+      file:
+        path: /home/{{ ansible_user_id }}/.local/share/fonts
+        state: directory
+        mode: '0755'
+      become: no
+
+    - name: Download MesloLGS NF Regular font
+      get_url:
+        url: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+        dest: /home/{{ ansible_user_id }}/.local/share/fonts/MesloLGS_NF_Regular.ttf
+        mode: '0644'
+      become: no
+
+    - name: Install Fira Code font via apt
+      apt:
+        name: fonts-firacode
+        state: present
+      become: yes
+
+    - name: Update font cache
+      shell: fc-cache -fv
+      become: no
+
     - name: Install nvm, Node.js (LTS), and Angular CLI
       shell: |
         set -e
